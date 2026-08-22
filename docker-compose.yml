@@ -5,7 +5,7 @@ services:
     image: diva-transcriptor:latest   # built with: docker build -t diva-transcriptor:latest .
     container_name: diva-transcriptor
     ports:
-      - "8521:8521"
+      - "8521:8522"
     environment:
       WHISPER_MODEL_SIZE: ${WHISPER_MODEL_SIZE:-small}
       WHISPER_DEVICE: ${WHISPER_DEVICE:-cpu}
@@ -15,7 +15,7 @@ services:
       DATABRICKS_TOKEN: ${DATABRICKS_TOKEN:-}
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8521/_stcore/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8522/_stcore/health"]
       interval: 30s
       timeout: 10s
       start_period: 60s

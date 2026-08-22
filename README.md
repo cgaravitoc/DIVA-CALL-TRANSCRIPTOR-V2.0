@@ -19,7 +19,7 @@ Abre `http://localhost:8521`.
 
 ```bash
 docker build -t diva-transcriptor:latest .
-docker run --rm -p 8521:8521 --env-file .env diva-transcriptor:latest
+docker run --rm -p 8521:8522 --env-file .env diva-transcriptor:latest
 ```
 
 ### Docker Compose
@@ -54,7 +54,7 @@ La transcripcion base funciona localmente con Whisper y no requiere una clave de
 - `code/databricks_llm.py`: cliente de prueba para una consulta directa a Databricks.
 - `code/transcript_service.py`: servicio/CLI programatico.
 - `Dockerfile`: imagen reproducible con ffmpeg.
-- `docker-compose.yml`: ejecucion del servicio con variables de OpenAI/Databricks.
+- `docker-compose.yml`: ejecucion del servicio con variables de Whisper/Databricks.
 - `records/`: audios y transcripciones de ejemplo.
 
 ## Validacion
