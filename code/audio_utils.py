@@ -307,13 +307,33 @@ def merge_dual_channel_segments(
     for seg in segments_right:
         seg["speaker"] = label_right
 
-    merged = sorted(segments_left + segments_right, key=lambda s: s["inicio"])
+    ordered = sorted(
+        (seg for seg in segments_left + segments_right if seg.get("texto", "").strip()),
+        key=lambda s: s["inicio"],
+    )
+
+    # Whisper can split one intervention into several segments. Join adjacent
+    # segments from the same channel so each line represents a speaker turn.
+    merged: list[dict] = []
+    for segment in ordered:
+        if merged and merged[-1]["speaker"] == segment["speaker"]:
+            merged[-1]["fin"] = segment["fin"]
+            merged[-1]["texto"] = f"{merged[-1]['texto']} {segment['texto'].strip()}"
+        else:
+            merged.append({**segment, "texto": segment["texto"].strip()})
+
     lines = [
-        f"[{seg['speaker']}] {seg['texto']}"
+        f"{_format_timestamp(seg['inicio'])} [{seg['speaker']}] {seg['texto']}"
         for seg in merged
-        if seg.get("texto", "").strip()
     ]
     return "\n".join(lines), merged
+
+
+def _format_timestamp(seconds: float) -> str:
+    """Format elapsed audio time as MM:SS for transcript lines."""
+    total_seconds = max(0, int(seconds))
+    minutes, remaining_seconds = divmod(total_seconds, 60)
+    return f"{minutes:02d}:{remaining_seconds:02d}"
 
 
 # ─── Hallucination post-processing ──────────────────────────────────────────
@@ -496,12 +516,14 @@ def transcribe_audio_file(
                     segments = [{"inicio": 0.0, "fin": duration, "texto": result["text"]}]
                 return {"segments": segments, "language": result["language"]}
 
-            result_l = _transcribe_channel(left_prep, "AGENTE")
-            result_r = _transcribe_channel(right_prep, "CLIENTE")
+            result_l = _transcribe_channel(left_prep, "Agente")
+            result_r = _transcribe_channel(right_prep, "Usuario")
+            for channel_result in (result_l, result_r):
+                for segment in channel_result["segments"]:
+                    segment["texto"] = filter_hallucinations(segment["texto"])
             text, merged_segs = merge_dual_channel_segments(
                 result_l["segments"], result_r["segments"]
             )
-            text = filter_hallucinations(text)
             return {
                 "text": text,
                 "segments": merged_segs,

@@ -1,6 +1,6 @@
 # DIVA Call Transcriptor v2.0
 
-Aplicacion Streamlit para transcribir llamadas en espanol usando `faster-whisper` localmente. Permite preprocesar audio y separar canales estereo.
+Aplicacion Streamlit para transcribir llamadas en espanol usando `faster-whisper` localmente. Permite preprocesar audio y separar canales estereo, identificando cada intervencion con timestamp y hablante.
 
 ## Inicio rapido
 
@@ -39,6 +39,14 @@ docker compose up --build
 ```
 
 La transcripcion funciona localmente con Whisper y no requiere credenciales de servicios externos.
+
+En grabaciones estereo, el canal izquierdo se identifica como `Agente` y el
+canal derecho como `Usuario`. Las transiciones se exportan con este formato:
+
+```text
+00:00 [Agente] Buenas tardes, ¿hablo con el señor Luis?
+00:13 [Usuario] Sí señor, con él habla. ¿Qué necesita?
+```
 
 ## Componentes
 
