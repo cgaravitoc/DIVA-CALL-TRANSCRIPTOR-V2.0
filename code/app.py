@@ -253,6 +253,10 @@ st.markdown(
     [data-testid="stFileUploader"] section button:hover {
         background: #0F766E !important;
     }
+    [data-testid="stFileUploader"] [title] {
+        color: #1C1917 !important;
+        opacity: 1 !important;
+    }
 
     /* ── Metric cards ────────────────────────────────────────────────────── */
     [data-testid="metric-container"] {
