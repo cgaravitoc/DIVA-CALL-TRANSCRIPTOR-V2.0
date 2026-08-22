@@ -192,16 +192,22 @@ def validate_audio_quality(audio_path: str) -> list[str]:
 
 # ─── Preprocessing ───────────────────────────────────────────────────────────
 
-def preprocess_audio(audio_path: str, output_path: Optional[str] = None) -> str:
+def preprocess_audio(
+    audio_path: str,
+    output_path: Optional[str] = None,
+    trim_silence: bool = True,
+) -> str:
     """
     Preprocess an audio file for optimal Whisper transcription:
       1. EBU R128 loudness normalisation (loudnorm).
-      2. Strip leading/trailing silence (silenceremove).
+    2. Strip leading/trailing silence (silenceremove), when enabled.
       3. Resample to 16 kHz mono PCM WAV.
 
     Args:
         audio_path:  Path to the source audio file.
         output_path: Destination WAV path.  A temp file is created when None.
+        trim_silence: Remove leading/trailing silence. Disable this for stereo
+                  channels so timestamps remain on the original timeline.
 
     Returns:
         Path to the preprocessed WAV file.  Caller is responsible for cleanup.
@@ -214,11 +220,12 @@ def preprocess_audio(audio_path: str, output_path: Optional[str] = None) -> str:
         output_path = tmp.name
         tmp.close()
 
-    af = (
-        "loudnorm=I=-16:TP=-1.5:LRA=11,"
-        "silenceremove=start_periods=1:start_silence=0.3:start_threshold=-50dB"
-        ":stop_periods=-1:stop_silence=1:stop_threshold=-50dB"
-    )
+    af = "loudnorm=I=-16:TP=-1.5:LRA=11"
+    if trim_silence:
+        af += (
+            ",silenceremove=start_periods=1:start_silence=0.3:start_threshold=-50dB"
+            ":stop_periods=-1:stop_silence=1:stop_threshold=-50dB"
+        )
 
     subprocess.run(
         [
@@ -312,15 +319,9 @@ def merge_dual_channel_segments(
         key=lambda s: s["inicio"],
     )
 
-    # Whisper can split one intervention into several segments. Join adjacent
-    # segments from the same channel so each line represents a speaker turn.
-    merged: list[dict] = []
-    for segment in ordered:
-        if merged and merged[-1]["speaker"] == segment["speaker"]:
-            merged[-1]["fin"] = segment["fin"]
-            merged[-1]["texto"] = f"{merged[-1]['texto']} {segment['texto'].strip()}"
-        else:
-            merged.append({**segment, "texto": segment["texto"].strip()})
+    # Keep every Whisper segment: its start time is part of the conversation
+    # timeline, even when two consecutive segments have the same speaker.
+    merged = [{**segment, "texto": segment["texto"].strip()} for segment in ordered]
 
     lines = [
         f"{_format_timestamp(seg['inicio'])} [{seg['speaker']}] {seg['texto']}"
@@ -330,10 +331,11 @@ def merge_dual_channel_segments(
 
 
 def _format_timestamp(seconds: float) -> str:
-    """Format elapsed audio time as MM:SS for transcript lines."""
-    total_seconds = max(0, int(seconds))
+    """Format elapsed audio time as MM:SS:msms for transcript lines."""
+    total_centiseconds = max(0, int(round(seconds * 100)))
+    total_seconds, centiseconds = divmod(total_centiseconds, 100)
     minutes, remaining_seconds = divmod(total_seconds, 60)
-    return f"{minutes:02d}:{remaining_seconds:02d}"
+    return f"{minutes:02d}:{remaining_seconds:02d}:{centiseconds:02d}"
 
 
 # ─── Hallucination post-processing ──────────────────────────────────────────
@@ -487,12 +489,12 @@ def transcribe_audio_file(
 
             if enable_preprocess:
                 try:
-                    left_prep = preprocess_audio(left_path)
+                    left_prep = preprocess_audio(left_path, trim_silence=False)
                     temp_files.append(left_prep)
                 except subprocess.CalledProcessError:
                     left_prep = left_path
                 try:
-                    right_prep = preprocess_audio(right_path)
+                    right_prep = preprocess_audio(right_path, trim_silence=False)
                     temp_files.append(right_prep)
                 except subprocess.CalledProcessError:
                     right_prep = right_path

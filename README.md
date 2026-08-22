@@ -44,8 +44,8 @@ En grabaciones estereo, el canal izquierdo se identifica como `Agente` y el
 canal derecho como `Usuario`. Las transiciones se exportan con este formato:
 
 ```text
-00:00 [Agente] Buenas tardes, ¿hablo con el señor Luis?
-00:13 [Usuario] Sí señor, con él habla. ¿Qué necesita?
+00:00:00 [Agente] Buenas tardes, ¿hablo con el señor Luis?
+00:13:04 [Usuario] Sí señor, con él habla. ¿Qué necesita?
 ```
 
 ## Componentes
