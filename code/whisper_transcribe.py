@@ -45,7 +45,8 @@ def transcribe_with_whisper(
         no_speech_threshold=0.6,
         compression_ratio_threshold=2.4,
         log_prob_threshold=-1.2,
-        vad_filter=False,
+        vad_filter=True,
+        vad_parameters={"min_silence_duration_ms": 500},
         word_timestamps=True,
         temperature=temperature,
     )

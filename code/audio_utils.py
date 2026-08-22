@@ -384,6 +384,34 @@ def _is_non_speech_text(text: str) -> bool:
     return not compact or re.search(r"[^\W_]", compact, re.UNICODE) is None
 
 
+def _remove_repeated_tail(text: str) -> str:
+    """Remove a repeated phrase tail while preserving its valid prefix."""
+    words = re.findall(r"\w+|[^\w\s]", text, flags=re.UNICODE)
+    if len(words) < 9:
+        return text
+
+    for phrase_size in range(1, min(8, len(words) // 3 + 1)):
+        phrase = words[-phrase_size:]
+        repetitions = 1
+        cursor = len(words) - phrase_size
+        while cursor >= phrase_size and words[cursor - phrase_size:cursor] == phrase:
+            repetitions += 1
+            cursor -= phrase_size
+        if repetitions >= 3:
+            kept = words[:cursor + phrase_size]
+            output = ""
+            for token in kept:
+                if token in ",.;:!?%)]}":
+                    output = output.rstrip() + token
+                elif token in "¿¡([{":
+                    output += (" " if output and not output.endswith(" ") else "") + token
+                else:
+                    needs_space = output and not output.endswith((" ", "¿", "¡", "(", "[", "{"))
+                    output += (" " if needs_space else "") + token
+            return output.strip()
+    return text
+
+
 def filter_hallucinations(text: str) -> str:
     """
     Remove known Spanish Whisper hallucination phrases and collapse consecutive
@@ -516,7 +544,9 @@ def transcribe_audio_file(
             for channel_result in (result_l, result_r):
                 clean_segments = []
                 for segment in channel_result["segments"]:
-                    segment["texto"] = filter_hallucinations(segment["texto"])
+                    segment["texto"] = _remove_repeated_tail(
+                        filter_hallucinations(segment["texto"])
+                    )
                     if (
                         segment["texto"].strip()
                         and not _is_non_speech_text(segment["texto"])
