@@ -191,8 +191,8 @@ st.markdown(
     }
     .stButton > button:active  { transform: translateY(0); }
     .stButton > button:disabled {
-        background: #D6D3D1;
-        color: #A8A29E;
+        background: #E7E5E4;
+        color: #57534E !important;
         box-shadow: none;
         transform: none;
         cursor: not-allowed;
@@ -222,6 +222,12 @@ st.markdown(
         color: #44403C !important;
         font-weight: 500;
         font-size: .9rem;
+    }
+    [data-testid="stCheckbox"] label,
+    [data-testid="stCheckbox"] label p,
+    [data-testid="stCheckbox"] label span {
+        color: #1C1917 !important;
+        opacity: 1 !important;
     }
 
     /* ── File uploader drop zone ─────────────────────────────────────────── */
