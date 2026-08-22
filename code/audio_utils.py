@@ -378,6 +378,12 @@ def _is_degenerate_text(text: str) -> bool:
     return False
 
 
+def _is_non_speech_text(text: str) -> bool:
+    """Reject separator-like output without letters or digits."""
+    compact = re.sub(r"\s+", "", text)
+    return not compact or re.search(r"[^\W_]", compact, re.UNICODE) is None
+
+
 def filter_hallucinations(text: str) -> str:
     """
     Remove known Spanish Whisper hallucination phrases and collapse consecutive
@@ -413,7 +419,8 @@ def build_prompt(user_prompt: str = "") -> str:
     Returns an empty string only if both BASE_PROMPT and user_prompt are empty,
     which tells Whisper to use no initial prompt at all.
     """
-    base = BASE_PROMPT.strip()
+    # Whisper initial_prompt is vocabulary context, not an instruction block.
+    base = "Español colombiano. Compensar. Servicios Financieros. Monitoreo transaccional. Billetera móvil. Token."
     user = user_prompt.strip()
     if base and user:
         return f"{base} {user}"
@@ -521,8 +528,16 @@ def transcribe_audio_file(
             result_l = _transcribe_channel(left_prep, "Agente")
             result_r = _transcribe_channel(right_prep, "Usuario")
             for channel_result in (result_l, result_r):
+                clean_segments = []
                 for segment in channel_result["segments"]:
                     segment["texto"] = filter_hallucinations(segment["texto"])
+                    if (
+                        segment["texto"].strip()
+                        and not _is_non_speech_text(segment["texto"])
+                        and not _is_degenerate_text(segment["texto"])
+                    ):
+                        clean_segments.append(segment)
+                channel_result["segments"] = clean_segments
             text, merged_segs = merge_dual_channel_segments(
                 result_l["segments"], result_r["segments"]
             )
