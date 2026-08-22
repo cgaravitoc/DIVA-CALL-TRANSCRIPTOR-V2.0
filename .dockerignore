@@ -1,0 +1,37 @@
+# Virtual environment – not needed in container
+.transcriptor/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+
+# Generated transcripts and records
+records/
+
+# IDE and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Artifacts / brain
+.gemini/
+
+# Local Docker/image artifacts
+*.tar
+*.tar.gz
+*.tgz
+*.zip
+
+# Application screenshots/docs media are not needed by the image
+screenshot.png
+
+# Local credentials
+.env

@@ -1,0 +1,22 @@
+services:
+
+  # ── DIVA Call Transcriptor ────────────────────────────────────────────────
+  diva:
+    image: diva-transcriptor:latest   # built with: docker build -t diva-transcriptor:latest .
+    container_name: diva-transcriptor
+    ports:
+      - "8521:8521"
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY:?Set OPENAI_API_KEY in .env}
+      GPT_TRANSCRIBE_MODEL: ${GPT_TRANSCRIBE_MODEL:-gpt-4o-transcribe}
+      DATABRICKS_BASE_URL: ${DATABRICKS_BASE_URL:-}
+      DATABRICKS_MODEL: ${DATABRICKS_MODEL:-system.ai.claude-opus-4-8}
+      DATABRICKS_TOKEN: ${DATABRICKS_TOKEN:-}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8521/_stcore/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+      retries: 3
+
