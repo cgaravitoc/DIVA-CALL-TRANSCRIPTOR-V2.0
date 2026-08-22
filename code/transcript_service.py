@@ -15,7 +15,7 @@ from pathlib import Path
 from datetime import datetime
 from typing import Optional
 
-from audio_utils import transcribe_audio_file
+from audio_utils import format_transcription_output, transcribe_audio_file
 
 
 def _configure_ffmpeg_path() -> None:
@@ -79,7 +79,9 @@ def transcribir_audio(
 
     transcripcion = {
         "archivo": os.path.basename(ruta_audio),
-        "texto": resultado["text"],
+        "texto": format_transcription_output(
+            os.path.basename(ruta_audio), resultado["text"]
+        ),
         "segmentos": resultado["segments"],
         "idioma_detectado": resultado["language"],
         "fecha_transcripcion": datetime.now().isoformat(),

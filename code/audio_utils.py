@@ -455,6 +455,30 @@ def build_prompt(user_prompt: str = "") -> str:
     return base or user
 
 
+def format_transcription_output(audio_name: str, text: str) -> str:
+    """Prefix the transcript with metadata parsed from its audio filename."""
+    match = re.match(
+        r"^(Ext\d+)-(\d+)-(\d{6})$",
+        Path(audio_name).stem,
+        re.IGNORECASE,
+    )
+    if not match:
+        return text
+
+    extension, phone, date = match.groups()
+    header = "\n".join(
+        [
+            "-" * 80,
+            f"EXT: {extension}",
+            f"CEL: {phone}",
+            f"FECHA: {date}",
+            "-" * 80,
+            "",
+        ]
+    )
+    return f"{header}{text}"
+
+
 def _transcribe_via_whisper(
     audio_path: str,
     initial_prompt: str,

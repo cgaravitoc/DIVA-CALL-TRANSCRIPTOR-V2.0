@@ -13,7 +13,13 @@ import zipfile
 from concurrent.futures import ThreadPoolExecutor, TimeoutError
 from pathlib import Path
 from datetime import datetime
-from audio_utils import get_audio_duration, validate_audio_quality, transcribe_audio_file, build_prompt
+from audio_utils import (
+    build_prompt,
+    format_transcription_output,
+    get_audio_duration,
+    transcribe_audio_file,
+    validate_audio_quality,
+)
 
 
 def configure_ffmpeg_path() -> str | None:
@@ -498,7 +504,7 @@ if run_batch and uploaded_batch:
                 current_progress,
                 f"Archivo actual [{idx}/{len(uploaded_payloads)}]: {uploaded_audio['name']}",
             )
-            texto = raw["text"]
+            texto = format_transcription_output(uploaded_audio["name"], raw["text"])
             for w in raw.get("channel_warnings", []):
                 st.warning(f"⚠️ {uploaded_audio['name']}: {w}")
 
