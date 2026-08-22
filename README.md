@@ -27,7 +27,7 @@ docker run --rm -p 8521:8522 --env-file .env diva-transcriptor:latest
 Crea `.env` en la raiz del proyecto:
 
 ```dotenv
-WHISPER_MODEL_SIZE=small
+WHISPER_MODEL_SIZE=medium
 WHISPER_DEVICE=cpu
 WHISPER_COMPUTE_TYPE=int8
 ```
