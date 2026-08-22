@@ -44,8 +44,8 @@ def _configure_ffmpeg_path() -> None:
 
 _configure_ffmpeg_path()
 
-# Carpeta de salida por defecto: records/ junto al script
-DEFAULT_RECORDS_DIR = Path(__file__).parent / "records"
+# Carpeta de salida por defecto: records/ en la raíz del proyecto
+DEFAULT_RECORDS_DIR = Path(__file__).resolve().parents[1] / "records"
 
 
 def transcribir_audio(

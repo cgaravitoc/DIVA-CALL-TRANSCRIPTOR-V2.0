@@ -13,7 +13,7 @@ docker build --no-cache --pull -t diva-transcriptor:latest .
 docker rmi diva-transcriptor:latest
 
 # 3) Levantar el contenedor con las credenciales de Databricks
-docker run --rm -p 8521:8521 --env-file .env diva-transcriptor:latest
+docker run --rm -p 8521:8522 --env-file .env diva-transcriptor:latest
 # o con Compose:
 docker compose up --build -d
 ```

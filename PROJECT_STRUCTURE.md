@@ -6,12 +6,14 @@ DIVA CALL TRANSCRIPTOR V2.0/
 │   ├── app.py
 │   ├── audio_utils.py
 │   ├── databricks_llm.py
+│   ├── whisper_transcribe.py
 │   ├── llm_reviewer.py
 │   ├── transcript_service.py
 │   ├── requirements.txt
-│   └── install-offline.sh
+│   └── (sin scripts de instalacion alternativos)
 ├── docs/
-│   └── DEPLOYMENT.md
+│   ├── DEPLOYMENT.md
+│   └── NOTAS.md
 ├── records/
 ├── Dockerfile
 ├── docker-compose.yml

@@ -389,7 +389,7 @@ def build_prompt(user_prompt: str = "") -> str:
     The user's additions are appended after a separator so Whisper sees both.
 
     Returns an empty string only if both BASE_PROMPT and user_prompt are empty,
-    which tells gpt-4o-transcribe to use no initial prompt at all.
+    which tells Whisper to use no initial prompt at all.
     """
     base = BASE_PROMPT.strip()
     user = user_prompt.strip()
