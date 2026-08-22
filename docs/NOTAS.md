@@ -12,7 +12,7 @@ docker build --no-cache --pull -t diva-transcriptor:latest .
 #    si quieres forzar que no quede ningún rastro previo
 docker rmi diva-transcriptor:latest
 
-# 3) Levantar el contenedor con las credenciales de Databricks
+# 3) Levantar el contenedor
 docker run --rm -p 8521:8522 --env-file .env diva-transcriptor:latest
 # o con Compose:
 docker compose up --build -d

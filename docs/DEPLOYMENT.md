@@ -6,7 +6,6 @@
 - `ffmpeg` solo para ejecucion fuera de Docker.
 - Python 3.12 o superior, `ffmpeg` y `ffprobe` para ejecucion local.
 - Acceso de red para descargar el modelo Whisper la primera vez.
-- Acceso al endpoint Databricks, solo si se usa la revision mejorada (opcional).
 
 ## Docker Compose
 
@@ -17,10 +16,6 @@ WHISPER_MODEL_SIZE=small
 WHISPER_DEVICE=cpu
 WHISPER_COMPUTE_TYPE=int8
 
-# Opcional: solo para revision mejorada
-DATABRICKS_TOKEN=tu-token
-DATABRICKS_BASE_URL=https://<workspace>.azuredatabricks.net/serving-endpoints
-DATABRICKS_MODEL=system.ai.claude-opus-4-8
 ```
 
 Arranca la aplicacion:
@@ -59,4 +54,4 @@ En Windows, usando el entorno del proyecto:
 & ".\.transcriptor\Scripts\python.exe" -m streamlit run code\app.py --server.port=8521
 ```
 
-La transcripcion funciona localmente despues de descargar el modelo Whisper. La revision mejorada sigue requiriendo acceso al endpoint Databricks.
+La transcripcion funciona localmente despues de descargar el modelo Whisper.

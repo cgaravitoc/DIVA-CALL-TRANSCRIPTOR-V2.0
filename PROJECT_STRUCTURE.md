@@ -5,12 +5,10 @@ DIVA CALL TRANSCRIPTOR V2.0/
 ├── code/
 │   ├── app.py
 │   ├── audio_utils.py
-│   ├── databricks_llm.py
 │   ├── whisper_transcribe.py
-│   ├── llm_reviewer.py
 │   ├── transcript_service.py
 │   ├── requirements.txt
-│   └── (sin scripts de instalacion alternativos)
+│   └── requirements.txt
 ├── docs/
 │   ├── DEPLOYMENT.md
 │   └── NOTAS.md

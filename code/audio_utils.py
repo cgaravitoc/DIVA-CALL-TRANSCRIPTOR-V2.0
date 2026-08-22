@@ -2,8 +2,7 @@
 Shared audio utilities for DIVA Call Transcriptor.
 
 Provides: ffprobe-based metadata, audio preprocessing (loudnorm + silence strip,
-16 kHz mono), stereo channel splitting, transcription via OpenAI's
-local faster-whisper transcription, hallucination post-processing.
+16 kHz mono), stereo channel splitting, and local faster-whisper transcription.
 
 ffmpeg/ffprobe must be available in PATH before calling any function.
 """
@@ -525,115 +524,6 @@ def transcribe_audio_file(
     finally:
         for p in temp_files:
             if p and p != audio_path and os.path.exists(p):
-                try:
-                    os.unlink(p)
-                except Exception:
-                    pass
-
-
-# ─── Dual-transcription for LLM reconciliation ──────────────────────────────
-
-def transcribe_dual(
-    audio_path: str,
-    *,
-    initial_prompt: str = "",
-    enable_preprocess: bool = True,
-    language: str = "es",
-) -> dict:
-    """
-    Transcribe the same (mono) audio file twice with different temperatures
-    to produce two independent hypotheses for LLM reconciliation.
-
-    Config A — conservative: temperature=0.0.
-    Config B — exploratory:  temperature=0.6.
-
-    Args:
-        audio_path:       Path to the source audio file (mono expected).
-        initial_prompt:   Domain vocabulary hint.
-        enable_preprocess: Run ffmpeg preprocessing before transcription.
-        language:         BCP-47 language code.
-
-    Returns:
-        dict with keys:
-          hypothesis_a (str), segments_a (list[dict]),
-          hypothesis_b (str), segments_b (list[dict]),
-          language (str).
-    """
-    temp_files: list[str] = []
-    try:
-        if enable_preprocess:
-            try:
-                prep_path = preprocess_audio(audio_path)
-                temp_files.append(prep_path)
-            except subprocess.CalledProcessError:
-                prep_path = audio_path
-        else:
-            prep_path = audio_path
-
-        result_a = _transcribe_via_whisper(prep_path, initial_prompt, language, temperature=0.0)
-        result_b = _transcribe_via_whisper(prep_path, initial_prompt, language, temperature=0.6)
-
-        return {
-            "hypothesis_a": filter_hallucinations(result_a["text"]),
-            "segments_a": result_a["segments"],
-            "hypothesis_b": filter_hallucinations(result_b["text"]),
-            "segments_b": result_b["segments"],
-            "language": result_a["language"],
-        }
-    finally:
-        for p in temp_files:
-            if p and p != audio_path and os.path.exists(p):
-                try:
-                    os.unlink(p)
-                except Exception:
-                    pass
-
-
-def transcribe_dual_stereo(
-    audio_path: str,
-    *,
-    initial_prompt: str = "",
-    enable_preprocess: bool = True,
-    language: str = "es",
-) -> dict:
-    """
-    Split a stereo call recording into AGENTE/CLIENTE channels and produce two
-    transcription hypotheses per channel, so each speaker can be reconciled
-    independently with an LLM reviewer.
-
-    Channels whose mean volume is below _SILENCE_DB_THRESHOLD are skipped —
-    the transcription model hallucinates confidently on near-silent audio
-    instead of returning empty text — and reported as silent.
-
-    Returns:
-        dict with keys 'agente' and 'cliente', each either:
-          {"silent": True} or
-          {"silent": False, "hypothesis_a": str, "hypothesis_b": str}
-    """
-    left_path, right_path = split_stereo_channels(audio_path)
-    try:
-        result: dict = {}
-        for key, label, path in (("agente", "AGENTE", left_path), ("cliente", "CLIENTE", right_path)):
-            mean_db = _mean_volume_db(path)
-            if mean_db is not None and mean_db < _SILENCE_DB_THRESHOLD:
-                result[key] = {"silent": True, "label": label, "mean_db": mean_db}
-                continue
-            dual = transcribe_dual(
-                path,
-                initial_prompt=initial_prompt,
-                enable_preprocess=enable_preprocess,
-                language=language,
-            )
-            result[key] = {
-                "silent": False,
-                "label": label,
-                "hypothesis_a": dual["hypothesis_a"],
-                "hypothesis_b": dual["hypothesis_b"],
-            }
-        return result
-    finally:
-        for p in (left_path, right_path):
-            if p and os.path.exists(p):
                 try:
                     os.unlink(p)
                 except Exception:

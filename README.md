@@ -1,6 +1,6 @@
 # DIVA Call Transcriptor v2.0
 
-Aplicacion Streamlit para transcribir llamadas en espanol usando `faster-whisper` localmente. Permite preprocesar audio, separar canales estereo, ejecutar doble transcripcion y reconciliar resultados con un modelo servido en Databricks (opcional).
+Aplicacion Streamlit para transcribir llamadas en espanol usando `faster-whisper` localmente. Permite preprocesar audio y separar canales estereo.
 
 ## Inicio rapido
 
@@ -30,11 +30,6 @@ Crea `.env` en la raiz del proyecto:
 WHISPER_MODEL_SIZE=small
 WHISPER_DEVICE=cpu
 WHISPER_COMPUTE_TYPE=int8
-
-# Opcional: solo para "revision mejorada" (reconciliacion LLM)
-DATABRICKS_TOKEN=tu-token
-DATABRICKS_BASE_URL=https://<workspace>.azuredatabricks.net/serving-endpoints
-DATABRICKS_MODEL=system.ai.claude-opus-4-8
 ```
 
 Luego ejecuta:
@@ -43,15 +38,13 @@ Luego ejecuta:
 docker compose up --build
 ```
 
-La transcripcion base funciona localmente con Whisper y no requiere una clave de OpenAI. La "revision mejorada" (doble transcripcion + reconciliacion LLM) es opcional y requiere credenciales de Databricks.
+La transcripcion funciona localmente con Whisper y no requiere credenciales de servicios externos.
 
 ## Componentes
 
 - `code/app.py`: interfaz Streamlit y flujo de procesamiento.
 - `code/audio_utils.py`: preprocesamiento, calidad de audio y orquestacion de transcripcion.
 - `code/whisper_transcribe.py`: cliente de transcripcion local via `faster-whisper`.
-- `code/llm_reviewer.py`: reconciliacion mediante el endpoint OpenAI-compatible de Databricks.
-- `code/databricks_llm.py`: cliente de prueba para una consulta directa a Databricks.
 - `code/transcript_service.py`: servicio/CLI programatico.
 - `Dockerfile`: imagen reproducible con ffmpeg.
 - `docker-compose.yml`: ejecucion del servicio con variables de Whisper/Databricks.
@@ -60,7 +53,7 @@ La transcripcion base funciona localmente con Whisper y no requiere una clave de
 ## Validacion
 
 ```powershell
-& ".\.transcriptor\Scripts\python.exe" -m py_compile code\app.py code\audio_utils.py code\whisper_transcribe.py code\llm_reviewer.py code\databricks_llm.py
+& ".\.transcriptor\Scripts\python.exe" -m py_compile code\app.py code\audio_utils.py code\whisper_transcribe.py code\transcript_service.py
 curl http://localhost:8521/_stcore/health
 ```
 
