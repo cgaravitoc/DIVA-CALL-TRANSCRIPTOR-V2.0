@@ -504,10 +504,9 @@ def transcribe_audio_file(
                 mean_db = _mean_volume_db(path)
                 if mean_db is not None and mean_db < _SILENCE_DB_THRESHOLD:
                     channel_warnings.append(
-                        f"Canal {label} sin voz detectada (volumen medio: {mean_db:.1f} dB). "
-                        "Se omitió la transcripción de ese canal para evitar texto inventado."
+                        f"Canal {label} con volumen bajo ({mean_db:.1f} dB). "
+                        "Se conserva la transcripción para no perder intervenciones breves."
                     )
-                    return {"segments": [], "language": language}
                 result = _transcribe_via_whisper(path, initial_prompt, language)
                 segments = result["segments"]
                 return {"segments": segments, "language": result["language"]}
