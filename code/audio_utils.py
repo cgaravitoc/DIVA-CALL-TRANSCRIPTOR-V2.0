@@ -519,10 +519,7 @@ def transcribe_audio_file(
                     )
                     return {"segments": [], "language": language}
                 result = _transcribe_via_whisper(path, initial_prompt, language)
-                duration = get_audio_duration(path) or 0.0
                 segments = result["segments"]
-                if not segments and result["text"].strip():
-                    segments = [{"inicio": 0.0, "fin": duration, "texto": result["text"]}]
                 return {"segments": segments, "language": result["language"]}
 
             result_l = _transcribe_channel(left_prep, "Agente")

@@ -41,12 +41,11 @@ def transcribe_with_whisper(
         language=language,
         beam_size=5,
         initial_prompt=initial_prompt or None,
-        condition_on_previous_text=False,
-        no_speech_threshold=0.5,
-        compression_ratio_threshold=2.0,
-        log_prob_threshold=-1.0,
-        vad_filter=True,
-        vad_parameters={"min_silence_duration_ms": 500},
+        condition_on_previous_text=True,
+        no_speech_threshold=0.6,
+        compression_ratio_threshold=2.4,
+        log_prob_threshold=-1.2,
+        vad_filter=False,
         temperature=temperature,
     )
     segments = list(segments_generator)
