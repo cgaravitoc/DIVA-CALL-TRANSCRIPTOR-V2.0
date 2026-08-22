@@ -316,7 +316,7 @@ def merge_dual_channel_segments(
 
     ordered = sorted(
         (seg for seg in segments_left + segments_right if seg.get("texto", "").strip()),
-        key=lambda s: s["inicio"],
+        key=lambda s: (s["inicio"], s.get("fin", s["inicio"]), s["speaker"]),
     )
 
     # Keep every Whisper segment: its start time is part of the conversation
@@ -494,19 +494,9 @@ def transcribe_audio_file(
             left_path, right_path = split_stereo_channels(audio_path)
             temp_files.extend([left_path, right_path])
 
-            if enable_preprocess:
-                try:
-                    left_prep = preprocess_audio(left_path, trim_silence=False)
-                    temp_files.append(left_prep)
-                except subprocess.CalledProcessError:
-                    left_prep = left_path
-                try:
-                    right_prep = preprocess_audio(right_path, trim_silence=False)
-                    temp_files.append(right_prep)
-                except subprocess.CalledProcessError:
-                    right_prep = right_path
-            else:
-                left_prep, right_prep = left_path, right_path
+            # The split files are already mono/16 kHz. Do not run loudnorm here:
+            # its lookahead latency shifts timestamps away from the source audio.
+            left_prep, right_prep = left_path, right_path
 
             channel_warnings: list[str] = []
 
