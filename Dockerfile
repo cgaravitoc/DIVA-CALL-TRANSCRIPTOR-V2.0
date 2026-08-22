@@ -34,9 +34,9 @@ ENV WHISPER_MODEL_SIZE=${WHISPER_MODEL_SIZE} \
 # Copy every application module required by the web and CLI entry points.
 COPY code/ ./
 
-EXPOSE 8521
+EXPOSE 8522
 
 # Transcription runs locally via faster-whisper; model is baked into the image.
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 CMD curl -f http://localhost:8522/_stcore/health || exit 1
 
-CMD ["streamlit", "run", "app.py", "--server.port=8521", "--server.address=0.0.0.0", "--server.headless=true"]
+CMD ["streamlit", "run", "app.py", "--server.port=8522", "--server.address=0.0.0.0", "--server.headless=true"]
