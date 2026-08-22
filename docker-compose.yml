@@ -10,6 +10,8 @@ services:
       WHISPER_MODEL_SIZE: ${WHISPER_MODEL_SIZE:-large}
       WHISPER_DEVICE: ${WHISPER_DEVICE:-cpu}
       WHISPER_COMPUTE_TYPE: ${WHISPER_COMPUTE_TYPE:-int8}
+    volumes:
+      - whisper-model-cache:/data/huggingface
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8522/_stcore/health"]
@@ -17,4 +19,7 @@ services:
       timeout: 10s
       start_period: 60s
       retries: 3
+
+volumes:
+  whisper-model-cache:
 

@@ -18,9 +18,12 @@ Abre `http://localhost:8521`.
 ### Docker
 
 ```bash
-docker build -t diva-transcriptor:latest .
+docker build --build-arg WHISPER_MODEL_SIZE=large -t diva-transcriptor:latest .
 docker run --rm -p 8521:8522 --env-file .env diva-transcriptor:latest
 ```
+
+Con este build, el modelo se descarga durante la construccion de la imagen y queda
+embebido en `/data/huggingface`, permitiendo ejecutar el contenedor sin internet.
 
 ### Docker Compose
 
@@ -69,3 +72,4 @@ curl http://localhost:8521/_stcore/health
 ```
 
 No guardes tokens en el codigo. `.env` esta excluido por `.gitignore`.
+wsl --export Ubuntu-22.04 "$env:USERPROFILE\Desktop\ubuntu-backup.tar"
