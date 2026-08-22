@@ -2,14 +2,22 @@
 
 import os
 from functools import lru_cache
+from pathlib import Path
 
-# Store the multi-gigabyte model on the data drive by default on Windows.
-if os.name == "nt":
-    os.environ.setdefault("HF_HOME", r"D:\huggingface-cache")
+# Keep the multi-gigabyte model inside the project by default. An explicit
+# HF_HOME (for example, the Docker volume configured by docker-compose) still
+# takes precedence.
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+DEFAULT_WHISPER_CACHE = PROJECT_ROOT / ".whisper-cache"
+os.environ.setdefault("HF_HOME", str(DEFAULT_WHISPER_CACHE))
 
 from faster_whisper import WhisperModel
 
 WHISPER_MODEL_SIZE = os.environ.get("WHISPER_MODEL_SIZE", "large")
+WHISPER_MODEL_PATH = os.environ.get("WHISPER_MODEL_PATH", "").strip()
+WHISPER_LOCAL_FILES_ONLY = os.environ.get(
+    "WHISPER_LOCAL_FILES_ONLY", "0"
+).lower() in {"1", "true", "yes"}
 WHISPER_DEVICE = os.environ.get("WHISPER_DEVICE", "cpu")
 WHISPER_COMPUTE_TYPE = os.environ.get("WHISPER_COMPUTE_TYPE", "int8")
 
@@ -17,10 +25,16 @@ WHISPER_COMPUTE_TYPE = os.environ.get("WHISPER_COMPUTE_TYPE", "int8")
 @lru_cache(maxsize=1)
 def _get_model() -> WhisperModel:
     """Load the local model once per process."""
+    model_source = WHISPER_MODEL_PATH or WHISPER_MODEL_SIZE
+    if WHISPER_MODEL_PATH and not Path(WHISPER_MODEL_PATH).is_dir():
+        raise FileNotFoundError(
+            f"No se encontro el modelo Whisper incluido en: {WHISPER_MODEL_PATH}"
+        )
     return WhisperModel(
-        WHISPER_MODEL_SIZE,
+        model_source,
         device=WHISPER_DEVICE,
         compute_type=WHISPER_COMPUTE_TYPE,
+        local_files_only=WHISPER_LOCAL_FILES_ONLY,
     )
 
 

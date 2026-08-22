@@ -23,6 +23,7 @@ from audio_utils import (
 from whisper_transcribe import (
     WHISPER_COMPUTE_TYPE,
     WHISPER_DEVICE,
+    WHISPER_MODEL_PATH,
     WHISPER_MODEL_SIZE,
     ensure_model_loaded,
 )
@@ -82,9 +83,9 @@ st.markdown(
        tag-bg:       #F0FDFA   tag-border: #99F6E4
     ── ──────────────────────────────────────────────────────────────────────── */
 
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-
-    html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
+    html, body, [class*="css"] {
+        font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+    }
 
     .stApp {
         background: #FAFAF9;
@@ -398,6 +399,12 @@ def load_model_with_progress(progress_slot) -> None:
                 progress_slot.progress(1.0, text="Modelo Whisper large listo")
                 return
             except TimeoutError:
+                if WHISPER_MODEL_PATH:
+                    progress_slot.progress(
+                        0.5,
+                        text=f"Cargando modelo Whisper {WHISPER_MODEL_SIZE} desde la imagen...",
+                    )
+                    continue
                 downloaded_bytes = get_whisper_cache_bytes()
                 downloaded_mb = downloaded_bytes / (1024 * 1024)
                 expected_mb = expected_bytes / (1024 * 1024)

@@ -14,8 +14,6 @@ docker rmi diva-transcriptor:latest
 
 # 3) Levantar el contenedor
 docker run --rm -p 8521:8522 --env-file .env diva-transcriptor:latest
-# o con Compose:
-docker compose up --build -d
 ```
 
 `--no-cache` ignora todas las capas cacheadas (por eso reinstala todo desde cero) y `--pull` refresca la imagen base `python:3.12-slim`. Por eso tarda más de lo normal.

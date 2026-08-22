@@ -1,5 +1,6 @@
 # Virtual environment – not needed in container
 .transcriptor/
+.whisper-cache/
 
 # Python cache
 __pycache__/
