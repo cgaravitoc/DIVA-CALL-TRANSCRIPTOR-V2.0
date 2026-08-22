@@ -12,9 +12,12 @@
 Configura `.env` en la raiz:
 
 ```dotenv
-WHISPER_MODEL_SIZE=medium
+WHISPER_MODEL_SIZE=large-v3
 WHISPER_DEVICE=cpu
 WHISPER_COMPUTE_TYPE=int8
+
+`large-v3` ofrece mayor precision, pero requiere mas memoria y tarda mas en
+CPU. Sobrescribe `WHISPER_MODEL_SIZE` con `medium` o `small` si es necesario.
 
 ```
 

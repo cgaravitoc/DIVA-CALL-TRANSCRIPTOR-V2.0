@@ -5,7 +5,7 @@ from functools import lru_cache
 
 from faster_whisper import WhisperModel
 
-WHISPER_MODEL_SIZE = os.environ.get("WHISPER_MODEL_SIZE", "medium")
+WHISPER_MODEL_SIZE = os.environ.get("WHISPER_MODEL_SIZE", "large-v3")
 WHISPER_DEVICE = os.environ.get("WHISPER_DEVICE", "cpu")
 WHISPER_COMPUTE_TYPE = os.environ.get("WHISPER_COMPUTE_TYPE", "int8")
 

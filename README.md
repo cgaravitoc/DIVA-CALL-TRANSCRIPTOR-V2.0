@@ -27,9 +27,12 @@ docker run --rm -p 8521:8522 --env-file .env diva-transcriptor:latest
 Crea `.env` en la raiz del proyecto:
 
 ```dotenv
-WHISPER_MODEL_SIZE=medium
+WHISPER_MODEL_SIZE=large-v3
 WHISPER_DEVICE=cpu
 WHISPER_COMPUTE_TYPE=int8
+
+El modelo predeterminado es `large-v3`. Puedes usar `medium` o `small` si
+necesitas reducir el consumo de memoria y el tiempo de procesamiento.
 ```
 
 Luego ejecuta:
