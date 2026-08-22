@@ -3,7 +3,7 @@ Shared audio utilities for DIVA Call Transcriptor.
 
 Provides: ffprobe-based metadata, audio preprocessing (loudnorm + silence strip,
 16 kHz mono), stereo channel splitting, transcription via OpenAI's
-gpt-4o-transcribe (see gpt_transcribe.py), hallucination post-processing.
+local faster-whisper transcription, hallucination post-processing.
 
 ffmpeg/ffprobe must be available in PATH before calling any function.
 """
@@ -379,7 +379,7 @@ def filter_hallucinations(text: str) -> str:
     return text.strip()
 
 
-# ─── gpt-4o-transcribe transcription core ───────────────────────────────────
+# ─── Local faster-whisper transcription core ─────────────────────────────────
 
 def build_prompt(user_prompt: str = "") -> str:
     """
@@ -398,7 +398,7 @@ def build_prompt(user_prompt: str = "") -> str:
     return base or user
 
 
-def _transcribe_via_gpt(
+def _transcribe_via_whisper(
     audio_path: str,
     initial_prompt: str,
     language: str,
@@ -406,15 +406,15 @@ def _transcribe_via_gpt(
     temperature: float = 0.0,
 ) -> dict:
     """
-    Transcribe via OpenAI's gpt-4o-transcribe (see gpt_transcribe.py), then
-    drop degenerate (garbage/repeated-word) output typical of near-silent audio.
+    Transcribe locally with faster-whisper, then drop degenerate
+    (garbage/repeated-word) output typical of near-silent audio.
 
     Returns dict with keys: text (str), segments (list[dict], empty — this
     engine returns no per-segment timestamps), language (str).
     """
-    from gpt_transcribe import transcribe_with_gpt
+    from whisper_transcribe import transcribe_with_whisper
 
-    result = transcribe_with_gpt(
+    result = transcribe_with_whisper(
         audio_path, initial_prompt=initial_prompt, language=language, temperature=temperature,
     )
     text = result["text"]
@@ -437,7 +437,7 @@ def transcribe_audio_file(
     Steps:
       1. Optional stereo channel split (agent L / customer R).
       2. Optional preprocessing: loudnorm → silence strip → 16 kHz mono WAV.
-      3. Transcription via OpenAI's gpt-4o-transcribe (see gpt_transcribe.py).
+    3. Transcription via the local faster-whisper model.
       4. Hallucination post-processing.
 
     Args:
@@ -489,7 +489,7 @@ def transcribe_audio_file(
                         "Se omitió la transcripción de ese canal para evitar texto inventado."
                     )
                     return {"segments": [], "language": language}
-                result = _transcribe_via_gpt(path, initial_prompt, language)
+                result = _transcribe_via_whisper(path, initial_prompt, language)
                 text = result["text"]
                 duration = get_audio_duration(path) or 0.0
                 segments = [{"inicio": 0.0, "fin": duration, "texto": text}] if text.strip() else []
@@ -518,7 +518,7 @@ def transcribe_audio_file(
         else:
             prep_path = audio_path
 
-        result = _transcribe_via_gpt(prep_path, initial_prompt, language)
+        result = _transcribe_via_whisper(prep_path, initial_prompt, language)
         result["text"] = filter_hallucinations(result["text"])
         return result
 
@@ -570,8 +570,8 @@ def transcribe_dual(
         else:
             prep_path = audio_path
 
-        result_a = _transcribe_via_gpt(prep_path, initial_prompt, language, temperature=0.0)
-        result_b = _transcribe_via_gpt(prep_path, initial_prompt, language, temperature=0.6)
+        result_a = _transcribe_via_whisper(prep_path, initial_prompt, language, temperature=0.0)
+        result_b = _transcribe_via_whisper(prep_path, initial_prompt, language, temperature=0.6)
 
         return {
             "hypothesis_a": filter_hallucinations(result_a["text"]),

@@ -17,11 +17,11 @@ COPY code/requirements.txt .
 RUN python -m pip install --no-cache-dir -r requirements.txt
 
 # Copy application source; all modules are required at runtime
-COPY code/app.py code/audio_utils.py code/gpt_transcribe.py code/llm_reviewer.py ./
+COPY code/app.py code/audio_utils.py code/whisper_transcribe.py code/llm_reviewer.py ./
 
 EXPOSE 8522
 
-# Transcription runs via OpenAI's gpt-4o-transcribe API — requires OPENAI_API_KEY at runtime.
+# Transcription runs locally via faster-whisper; the model downloads on first use.
 # Revisión mejorada (opcional) requires Databricks credentials.
 ENV DATABRICKS_BASE_URL=https://adb-2549848299256377.17.azuredatabricks.net/serving-endpoints \
     DATABRICKS_MODEL=system.ai.claude-opus-4-8

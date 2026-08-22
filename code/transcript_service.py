@@ -1,11 +1,11 @@
 """
 Script para transcribir audios de llamadas de servicio al cliente.
-Usa OpenAI gpt-4o-transcribe (ver gpt_transcribe.py) con preprocesamiento de audio vía ffmpeg.
+Usa faster-whisper local con preprocesamiento de audio vía ffmpeg.
 
 Instalación:
-    pip install openai python-dotenv
+    pip install faster-whisper python-dotenv
 
-Requiere OPENAI_API_KEY configurado en el entorno o en .env.
+El modelo Whisper se descarga en el primer uso y puede configurarse mediante variables de entorno.
 """
 
 import os

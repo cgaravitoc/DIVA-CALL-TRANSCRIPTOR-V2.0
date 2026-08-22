@@ -1,6 +1,6 @@
 """
 DIVA Call Transcriptor - Streamlit UI
-Browser-based batch audio transcription with OpenAI's gpt-4o-transcribe.
+Browser-based batch audio transcription with local faster-whisper.
 """
 
 import streamlit as st
@@ -292,7 +292,7 @@ st.markdown(
             <p>Transcribe llamadas de audio en lote y descarga cada resultado como archivo de texto.</p>
         </div>
         <div class="header-aside">
-            Motor de transcripción: OpenAI <strong>gpt-4o-transcribe</strong>. El audio se normaliza, limpia y preprocesa automáticamente. Los resultados se entregan en un ZIP.
+            Motor de transcripción: <strong>faster-whisper local</strong>. El audio se normaliza, limpia y preprocesa automáticamente. Los resultados se entregan en un ZIP.
         </div>
     </div>
     """,
@@ -323,7 +323,7 @@ def get_audio_duration_seconds(audio_path: Path) -> float | None:
 
 
 def estimate_transcription_seconds(audio_path: Path) -> float:
-    """Rough ETA for the gpt-4o-transcribe API call (upload + inference + network)."""
+    """Estimate local Whisper transcription time from the audio duration."""
     duration = get_audio_duration_seconds(audio_path)
     api_factor = 0.5
 
@@ -555,7 +555,7 @@ if st.session_state.get("main_upload_results"):
 st.markdown(
     """
     <div style='text-align:center; color:#A8A29E; font-size:.8rem; padding: 2rem 0 1rem;'>
-        DIVA Call Transcriptor &nbsp;·&nbsp; gpt-4o-transcribe &nbsp;·&nbsp; Built with Streamlit
+        DIVA Call Transcriptor &nbsp;·&nbsp; faster-whisper local &nbsp;·&nbsp; Built with Streamlit
     </div>
     """,
     unsafe_allow_html=True,
