@@ -291,12 +291,13 @@ def split_stereo_channels(audio_path: str) -> tuple[str, str]:
 def merge_dual_channel_segments(
     segments_left: list[dict],
     segments_right: list[dict],
-    label_left: str = "AGENTE",
-    label_right: str = "CLIENTE",
+    label_left: str = "Agente",
+    label_right: str = "Usuario",
 ) -> tuple[str, list[dict]]:
     """
     Interleave segments from two channels, sorted by start time, and add a
-    'speaker' key to each segment.
+    'speaker' key to each segment. The text uses labels such as
+    '[Agente] ...' and '[Usuario] ...'.
 
     Returns:
         (full_text_with_speaker_labels, merged_segment_list)
@@ -308,7 +309,7 @@ def merge_dual_channel_segments(
 
     merged = sorted(segments_left + segments_right, key=lambda s: s["inicio"])
     lines = [
-        f"{seg['speaker']}: {seg['texto']}"
+        f"[{seg['speaker']}] {seg['texto']}"
         for seg in merged
         if seg.get("texto", "").strip()
     ]
@@ -408,8 +409,8 @@ def _transcribe_via_whisper(
     Transcribe locally with faster-whisper, then drop degenerate
     (garbage/repeated-word) output typical of near-silent audio.
 
-    Returns dict with keys: text (str), segments (list[dict], empty — this
-    engine returns no per-segment timestamps), language (str).
+    Returns dict with keys: text (str), segments (list[dict] with timestamps),
+    language (str).
     """
     from whisper_transcribe import transcribe_with_whisper
 
@@ -419,7 +420,7 @@ def _transcribe_via_whisper(
     text = result["text"]
     if _is_degenerate_text(text):
         text = ""
-    return {"text": text, "segments": [], "language": result["language"]}
+    return {"text": text, "segments": result["segments"], "language": result["language"]}
 
 
 def transcribe_audio_file(
@@ -489,9 +490,10 @@ def transcribe_audio_file(
                     )
                     return {"segments": [], "language": language}
                 result = _transcribe_via_whisper(path, initial_prompt, language)
-                text = result["text"]
                 duration = get_audio_duration(path) or 0.0
-                segments = [{"inicio": 0.0, "fin": duration, "texto": text}] if text.strip() else []
+                segments = result["segments"]
+                if not segments and result["text"].strip():
+                    segments = [{"inicio": 0.0, "fin": duration, "texto": result["text"]}]
                 return {"segments": segments, "language": result["language"]}
 
             result_l = _transcribe_channel(left_prep, "AGENTE")

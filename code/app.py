@@ -425,6 +425,13 @@ with st.container(border=True):
         key="main_batch_files",
     )
 
+    separar_canales = st.checkbox(
+        "Separar canales estéreo (Agente / Usuario)",
+        value=True,
+        help="Usa el canal izquierdo para el agente y el derecho para el usuario. "
+        "Desactívalo si el audio es mono o si ambos hablan mezclados.",
+    )
+
     run_batch = st.button("Transcribir archivos", key="btn_main_batch", disabled=not uploaded_batch)
 if run_batch and uploaded_batch:
     st.markdown("---")
@@ -475,6 +482,7 @@ if run_batch and uploaded_batch:
                 lambda p=tmp_path: transcribe_audio_file(
                     p,
                     initial_prompt=effective_prompt,
+                    handle_stereo=separar_canales,
                 ),
                 Path(tmp_path),
                 current_progress,
