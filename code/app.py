@@ -20,6 +20,12 @@ from audio_utils import (
     transcribe_audio_file,
     validate_audio_quality,
 )
+from whisper_transcribe import (
+    WHISPER_COMPUTE_TYPE,
+    WHISPER_DEVICE,
+    WHISPER_MODEL_SIZE,
+    ensure_model_loaded,
+)
 
 
 def configure_ffmpeg_path() -> str | None:
@@ -372,6 +378,39 @@ def run_with_file_progress(work, audio_path: Path, progress_slot, label: str):
                 )
 
 
+def get_whisper_cache_bytes() -> int:
+    """Return the current size of the configured Whisper cache."""
+    cache_root = Path(os.environ.get("HF_HOME", Path.home() / ".cache" / "huggingface"))
+    model_cache = cache_root / "hub" / "models--Systran--faster-whisper-large-v3"
+    if not model_cache.exists():
+        return 0
+    return sum(path.stat().st_size for path in model_cache.rglob("*") if path.is_file())
+
+
+def load_model_with_progress(progress_slot) -> None:
+    """Load Whisper in a worker while displaying its cache download progress."""
+    expected_bytes = 3_087.28 * 1024 * 1024
+    with ThreadPoolExecutor(max_workers=1) as executor:
+        future = executor.submit(ensure_model_loaded)
+        while True:
+            try:
+                future.result(timeout=0.5)
+                progress_slot.progress(1.0, text="Modelo Whisper large listo")
+                return
+            except TimeoutError:
+                downloaded_bytes = get_whisper_cache_bytes()
+                downloaded_mb = downloaded_bytes / (1024 * 1024)
+                expected_mb = expected_bytes / (1024 * 1024)
+                percentage = min(0.99, downloaded_bytes / expected_bytes)
+                progress_slot.progress(
+                    percentage,
+                    text=(
+                        f"Descargando modelo Whisper {WHISPER_MODEL_SIZE}: "
+                        f"{downloaded_mb:,.0f} / {expected_mb:,.0f} MB"
+                    ),
+                )
+
+
 def build_transcriptions_zip(results: list[dict]) -> bytes:
     zip_buffer = io.BytesIO()
     used_names = set()
@@ -452,6 +491,21 @@ with st.container(border=True):
 if run_batch and uploaded_batch:
     st.markdown("---")
     st.markdown("### Progreso")
+    st.info(
+        f"**Modelo Whisper:** `{WHISPER_MODEL_SIZE}`  ·  "
+        f"**Dispositivo:** `{WHISPER_DEVICE}`  ·  "
+        f"**Cómputo:** `{WHISPER_COMPUTE_TYPE}`\n\n"
+        "La primera transcripción puede tardar mientras el modelo se descarga. "
+        "Después quedará guardado en la caché local y no se volverá a descargar."
+    )
+    model_progress = st.progress(0, text="Preparando modelo Whisper large...")
+    try:
+        load_model_with_progress(model_progress)
+    except Exception as exc:
+        model_progress.empty()
+        st.error(f"No se pudo descargar o cargar el modelo Whisper: {exc}")
+        st.stop()
+
     overall_progress = st.progress(0, text=f"Progreso general: 0/{len(uploaded_batch)} archivos completados")
     current_progress = st.progress(0, text="Archivo actual: en espera")
     results = []

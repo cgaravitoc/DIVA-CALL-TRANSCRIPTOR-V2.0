@@ -314,10 +314,18 @@ def merge_dual_channel_segments(
     for seg in segments_right:
         seg["speaker"] = label_right
 
-    ordered = sorted(
-        (seg for seg in segments_left + segments_right if seg.get("texto", "").strip()),
-        key=lambda s: (s["inicio"], s.get("fin", s["inicio"]), s["speaker"]),
-    )
+    candidates = [
+        (position, segment)
+        for position, segment in enumerate(segments_left + segments_right)
+        if segment.get("texto", "").strip()
+    ]
+    ordered = [
+        segment
+        for _, segment in sorted(
+            candidates,
+            key=lambda item: (item[1]["inicio"], item[0]),
+        )
+    ]
 
     # Keep every Whisper segment: its start time is part of the conversation
     # timeline, even when two consecutive segments have the same speaker.
@@ -331,11 +339,11 @@ def merge_dual_channel_segments(
 
 
 def _format_timestamp(seconds: float) -> str:
-    """Format elapsed audio time as MM:SS:msms for transcript lines."""
+    """Format elapsed audio time as MM:SS.cc for transcript lines."""
     total_centiseconds = max(0, int(round(seconds * 100)))
     total_seconds, centiseconds = divmod(total_centiseconds, 100)
     minutes, remaining_seconds = divmod(total_seconds, 60)
-    return f"{minutes:02d}:{remaining_seconds:02d}:{centiseconds:02d}"
+    return f"{minutes:02d}:{remaining_seconds:02d}.{centiseconds:02d}"
 
 
 # ─── Hallucination post-processing ──────────────────────────────────────────

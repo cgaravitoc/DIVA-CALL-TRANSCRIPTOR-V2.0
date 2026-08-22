@@ -3,9 +3,13 @@
 import os
 from functools import lru_cache
 
+# Store the multi-gigabyte model on the data drive by default on Windows.
+if os.name == "nt":
+    os.environ.setdefault("HF_HOME", r"D:\huggingface-cache")
+
 from faster_whisper import WhisperModel
 
-WHISPER_MODEL_SIZE = os.environ.get("WHISPER_MODEL_SIZE", "large-v3")
+WHISPER_MODEL_SIZE = os.environ.get("WHISPER_MODEL_SIZE", "large")
 WHISPER_DEVICE = os.environ.get("WHISPER_DEVICE", "cpu")
 WHISPER_COMPUTE_TYPE = os.environ.get("WHISPER_COMPUTE_TYPE", "int8")
 
@@ -18,6 +22,11 @@ def _get_model() -> WhisperModel:
         device=WHISPER_DEVICE,
         compute_type=WHISPER_COMPUTE_TYPE,
     )
+
+
+def ensure_model_loaded() -> None:
+    """Download and load the configured model before transcription starts."""
+    _get_model()
 
 
 def is_available() -> tuple[bool, str]:
@@ -45,12 +54,12 @@ def transcribe_with_whisper(
         no_speech_threshold=0.6,
         compression_ratio_threshold=2.4,
         log_prob_threshold=-1.2,
-        vad_filter=True,
-        vad_parameters={"min_silence_duration_ms": 500},
+        vad_filter=False,
         word_timestamps=True,
         temperature=temperature,
     )
     segments = list(segments_generator)
+    segments.sort(key=lambda segment: (segment.start, segment.end))
     return {
         "text": " ".join(segment.text.strip() for segment in segments if segment.text.strip()),
         "segments": [

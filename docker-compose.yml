@@ -7,7 +7,7 @@ services:
     ports:
       - "8521:8522"
     environment:
-      WHISPER_MODEL_SIZE: ${WHISPER_MODEL_SIZE:-large-v3}
+      WHISPER_MODEL_SIZE: ${WHISPER_MODEL_SIZE:-large}
       WHISPER_DEVICE: ${WHISPER_DEVICE:-cpu}
       WHISPER_COMPUTE_TYPE: ${WHISPER_COMPUTE_TYPE:-int8}
     restart: unless-stopped
